@@ -1,4 +1,3 @@
-from __future__ import division
 ATMOS_KEY = "194ed3dd98414dcebc780f030d36e616/131318694590302234@ecstestdrive.emc.com"
 ATMOS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
 HOST = 'atmos.ecstestdrive.com'
@@ -11,17 +10,15 @@ import subprocess
 import time
 import json
 from EsuRestApi import EsuRestApi
-import datetime
 
-numberOfIterations = 2
 api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
 fileDetails = {}
-#fileDetails['../512k']={ "count": '100', "size": '512'}
-#fileDetails['../1MB']={ "count": '50', "size": '1000'}
-#fileDetails['../10MB']={ "count": '25', "size": '10000'}
-#fileDetails['../100MB']={ "count": '10', "size": '100000'}
+fileDetails['../512k']={ "count": '100', "size": '512'}
+fileDetails['../1MB']={ "count": '50', "size": '1000'}
+fileDetails['../10MB']={ "count": '25', "size": '10000'}
+fileDetails['../100MB']={ "count": '10', "size": '100000'}
 fileDetails['../1000MB']={ "count": '5', "size": '1000000'}
 
 def createDirectories():
@@ -51,35 +48,25 @@ def get_size(start_path):
             total_size += os.path.getsize(fp)
     return total_size
 
-def sizeof_fmt(num):
-    num = (num/1024)/1024
-    return num
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def uploadFiles():
+    start_time = time.time()
     for directory, value in fileDetails.iteritems():
-        transferTimeList = []
-        throughputTimeList = []
-        for num in range(numberOfIterations):
-            dirSize = get_size(directory)
-            filenames = os.listdir(directory)
-            print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
-            for fname in filenames:
-                start_time = datetime.datetime.now()
-                fileData = open(directory + '/' + fname, 'rb')
-                #objectId = api.create_object(data = fileData.read())
-                #objectList.append(objectId)
-                time.sleep(1)
-                fileData = open(directory + '/' + fname, 'rb')
-                fileData.close()
-                end_time = datetime.datetime.now()
-                transferTime = (end_time.microsecond - start_time.microsecond) / 1000
-                throughput = (float(value['size']) / transferTime) / 1000
-                transferTimeList.append(int(transferTime))
-                throughputTimeList.append(float(throughput))
-                
-        transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
-        throughput1 = reduce(lambda x, y: x + y, throughputTimeList) / len(throughputTimeList)
-        results[directory]={'time': transferTime1, 'throughput': throughput1}
+        dirSize = get_size(directory)
+        filenames = os.listdir(directory)
+        print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
+        for fname in filenames:
+            fileData = open(directory + '/' + fname, 'rb')
+            objectList.append(api.create_object(data = fileData.read()))
+        transferTime = ("%i" % (time.time() - start_time))
+        throughput = sizeof_fmt(int(dirSize)/int(transferTime))
+        results[directory]={'time': transferTime, 'throughput': throughput}
 
 createDirectories()
 createTestFiles()
