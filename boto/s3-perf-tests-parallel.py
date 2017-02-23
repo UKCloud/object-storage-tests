@@ -13,7 +13,7 @@ from datetime import datetime
 from boto.s3.connection import S3Connection
 import threading
 
-api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
+conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST)  
 results = {}
 objectList = []
 fileDetails = {}
@@ -76,7 +76,7 @@ def singleFileUpload(directory, filename):
     bucket = re.sub('\.\.\/', "", directory.lower() )
     bucket = conn.get_bucket(bucket)
     k = bucket.new_key(directory + '/' + filename)
-    k.set_contents_from_filename(directory + "/" + fname)
+    k.set_contents_from_filename(directory + "/" + filename)
     sema.release()
 
 def uploadFiles():
