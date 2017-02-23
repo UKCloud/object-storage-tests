@@ -26,7 +26,7 @@ transferTimeList = []
 throughputList = []
 numberOfIterations = 1
 threads = []
-maxthreads = 10
+maxthreads = 1
 sema = threading.Semaphore(value=maxthreads)
 threads = list()
 
@@ -49,13 +49,6 @@ def createTestFiles():
 def cleanup():
     for object in objectList:
         api.delete_object(object)
-
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return num
-        num /= 1024.0
-    return num
 
 def get_size(start_path):
     p = subprocess.Popen(['du', '-ms', start_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -82,7 +75,7 @@ def uploadFiles():
             t.join()
         end_time = os.times()[4]
         transferTime = ( end_time - start_time )
-        throughput = sizeof_fmt((float(get_size(directory)))/float(transferTime))
+        throughput = (float(get_size(directory)))/float(transferTime)
         print(value['size'] + ',' + str(transferTime) + ',' + str(throughput))
 
 createDirectories()

@@ -69,7 +69,6 @@ def singleFileUpload(directory, filename):
     bucket = conn.get_bucket(bucket)
     k = bucket.new_key(filename)
     k.set_contents_from_filename(directory + "/" + filename)
-    time.sleep(1)
     sema.release()
 
 def uploadFiles():
