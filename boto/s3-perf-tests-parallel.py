@@ -75,7 +75,7 @@ def singleFileUpload(directory, filename):
     sema.acquire()
     bucket = re.sub('\.\.\/', "", directory.lower() )
     bucket = conn.get_bucket(bucket)
-    k = bucket.new_key(directory + '/' + filename)
+    k = bucket.new_key(filename)
     k.set_contents_from_filename(directory + "/" + filename)
     sema.release()
 
