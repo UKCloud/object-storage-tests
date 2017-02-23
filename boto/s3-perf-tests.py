@@ -10,6 +10,7 @@ import time
 import json
 from boto.s3.connection import S3Connection
 
+numberOfIterations=10
 conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST)
 results = {}
 fileDetails = {}
@@ -69,24 +70,33 @@ def get_size(start_path):
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
         if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
+            return num
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    #return "%.1f%s%s" % (num, 'Yi', suffix)
+    return num
 
 def uploadFiles():
-    start_time = time.time()
-    for directory, value in fileDetails.iteritems():
-        dirSize = get_size(directory)
-        filenames = os.listdir(directory)
-        print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
-        for fname in filenames:
-            bucket = re.sub('\.\.\/', "", directory.lower() )
-            bucket = conn.get_bucket(bucket)
-            k = bucket.new_key(fname)
-            k.set_contents_from_filename(directory + "/" + fname)
-        transferTime = ("%i" % (time.time() - start_time))
-        throughput = sizeof_fmt(int(dirSize)/int(transferTime))
-        results[directory]={'time': transferTime, 'throughput': throughput}
+    throughputList = []
+    transferTimeList = []
+    for num in range(numberOfIterations):
+        start_time = time.time()
+        for directory, value in fileDetails.iteritems():
+            dirSize = get_size(directory)
+            filenames = os.listdir(directory)
+            print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
+            for fname in filenames:
+                bucket = re.sub('\.\.\/', "", directory.lower() )
+                bucket = conn.get_bucket(bucket)
+                k = bucket.new_key(fname)
+                k.set_contents_from_filename(directory + "/" + fname)
+            transferTime = ("%i" % (time.time() - start_time))
+            throughput = sizeof_fmt(int(dirSize)/int(transferTime))
+            transferTimeList.append(int(transferTime))
+            throughputList.append(int(throughput))
+            
+        transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
+        throughput1 = reduce(lambda x, y: x + y, throughputList) / len(throughputList)
+        results[directory]={'time': transferTime1, 'throughput': throughput1}
 
 createDirectories()
 createBucket()

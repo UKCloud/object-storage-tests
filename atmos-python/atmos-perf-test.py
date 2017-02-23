@@ -11,6 +11,7 @@ import time
 import json
 from EsuRestApi import EsuRestApi
 
+iterations = 10
 api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
@@ -51,22 +52,30 @@ def get_size(start_path):
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
         if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
+            return num
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    return num
 
 def uploadFiles():
+    transferTimeList = []
+    throughputList = []
     start_time = time.time()
-    for directory, value in fileDetails.iteritems():
-        dirSize = get_size(directory)
-        filenames = os.listdir(directory)
-        print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
-        for fname in filenames:
-            fileData = open(directory + '/' + fname, 'rb')
-            objectList.append(api.create_object(data = fileData.read()))
-        transferTime = ("%i" % (time.time() - start_time))
-        throughput = sizeof_fmt(int(dirSize)/int(transferTime))
-        results[directory]={'time': transferTime, 'throughput': throughput}
+    for num in range(numberOfIterations):
+        for directory, value in fileDetails.iteritems():
+            dirSize = get_size(directory)
+            filenames = os.listdir(directory)
+            print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
+            for fname in filenames:
+                fileData = open(directory + '/' + fname, 'rb')
+                objectList.append(api.create_object(data = fileData.read()))
+                transferTime = ("%i" % (time.time() - start_time))
+                throughput = sizeof_fmt(int(dirSize)/int(transferTime))
+                transferTimeList.append(int(transferTime))
+                throughputList.append(int(throughput))
+                
+            transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
+            throughput1 = reduce(lambda x, y: x + y, throughputList) / len(throughputList)
+            results[directory]={'time': transferTime1, 'throughput': throughput1}
 
 createDirectories()
 createTestFiles()
