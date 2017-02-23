@@ -68,6 +68,7 @@ def uploadFiles():
             for fname in filenames:
                 fileData = open(directory + '/' + fname, 'rb')
                 objectList.append(api.create_object(data = fileData.read()))
+                fileData.close()
                 transferTime = ("%i" % (time.time() - start_time))
                 throughput = sizeof_fmt(int(dirSize)/int(transferTime))
                 transferTimeList.append(int(transferTime))
