@@ -16,10 +16,10 @@ api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
 fileDetails = {}
-fileDetails['../512k']={ "count": '100', "size": '512'}
-fileDetails['../1MB']={ "count": '50', "size": '1000'}
-fileDetails['../10MB']={ "count": '25', "size": '10000'}
-fileDetails['../100MB']={ "count": '10', "size": '100000'}
+#fileDetails['../512k']={ "count": '100', "size": '512'}
+#fileDetails['../1MB']={ "count": '50', "size": '1000'}
+#fileDetails['../10MB']={ "count": '25', "size": '10000'}
+#fileDetails['../100MB']={ "count": '10', "size": '100000'}
 fileDetails['../1000MB']={ "count": '5', "size": '1000000'}
 
 def createDirectories():
@@ -50,13 +50,12 @@ def get_size(start_path):
     return total_size
 
 def sizeof_fmt(num):
-    num /= 1024.0
+    num = (num/1024)/1024
     return num
 
 def uploadFiles():
     for directory, value in fileDetails.iteritems():
         transferTimeList = []
-        throughputList = []
         for num in range(numberOfIterations):
             dirSize = get_size(directory)
             filenames = os.listdir(directory)
@@ -65,17 +64,15 @@ def uploadFiles():
                 start_time = time.time()
                 fileData = open(directory + '/' + fname, 'rb')
                 objectId = api.create_object(data = fileData.read())
-                print(objectId)
                 objectList.append(objectId)
                 fileData.close()
                 transferTime = ("%i" % (time.time() - start_time))
-                throughput = sizeof_fmt(int(dirSize)/int(transferTime))
                 transferTimeList.append(int(transferTime))
-                throughputList.append(int(throughput))
                 
         transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
-        throughput1 = reduce(lambda x, y: x + y, throughputList) / len(throughputList)
-        results[directory]={'time': transferTime1, 'throughput': throughput1}
+        print(transferTime)
+        throughput = (sizeof_fmt(dirSize)/int(transferTime1))
+        results[directory]={'time': transferTime1, 'throughput': throughput}
 
 createDirectories()
 createTestFiles()
