@@ -67,10 +67,11 @@ def uploadFiles():
         transferTime = ("%i" % (time.time() - start_time))
         throughput = sizeof_fmt(int(dirSize)/int(transferTime))
         results[directory]={'time': transferTime, 'throughput': throughput}
+        print(value['size'] + ',' + transferTime + ',' + throughput)
 
 createDirectories()
 createTestFiles()
 #listObjects()
 uploadFiles()
-print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
+#print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
 #cleanup()
