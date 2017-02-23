@@ -1,6 +1,7 @@
-AWS_KEY = "131318694590302234@ecstestdrive.emc.com"
-AWS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
-HOST = 'object.ecstestdrive.com'
+ATMOS_KEY = "194ed3dd98414dcebc780f030d36e616/131318694590302234@ecstestdrive.emc.com"
+ATMOS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
+HOST = 'atmos.ecstestdrive.com'
+PORT = 443
  
 import re
 import os
@@ -8,10 +9,11 @@ import sys
 import subprocess
 import time
 import json
-from boto.s3.connection import S3Connection
+from EsuRestApi import EsuRestApi
 
-conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST)
+api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
+objectList = []
 fileDetails = {}
 fileDetails['../512k']={ "count": '100', "size": '512'}
 fileDetails['../1MB']={ "count": '50', "size": '1000'}
@@ -34,29 +36,9 @@ def createTestFiles():
             for num in range(count):
                 subprocess.call(['dd', 'if=/dev/zero', "of=" + directory + "/file-" + str(num), "bs=1024", "count=" + size])
 
-def createBucket():
-    for bucket in fileDetails.keys():
-        bucket = bucket.lower() 
-        try:
-            bucket = conn.get_bucket(bucket)
-        except Exception as e:
-            if re.match(r".*404 Not Found.*", str(e)):
-                conn.create_bucket(bucket)
-            else:
-                print("couldn't create bucket")
-
-def listObjects():
-    for bucket in fileDetails.keys():
-        bucket = bucket.lower()
-        bucket = conn.get_bucket(bucket)
-        for obj in bucket.list():
-            print(obj)
-
 def cleanup():
-    for bucket in fileDetails.keys():
-        bucket = bucket.lower()
-        bucket = conn.get_bucket(bucket)
-        bucket.delete_keys(bucket.list())
+    for object in objectList:
+        api.delete_object(object)
 
 def get_size(start_path):
     total_size = 0
@@ -80,17 +62,15 @@ def uploadFiles():
         filenames = os.listdir(directory)
         print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
         for fname in filenames:
-            bucket = conn.get_bucket(directory.lower())
-            k = bucket.new_key(fname)
-            k.set_contents_from_filename(directory + "/" + fname)
+            fileData = open(directory + '/' + fname, 'rb')
+            objectList.append(api.create_object(data = fileData.read()))
         transferTime = ("%i" % (time.time() - start_time))
         throughput = sizeof_fmt(int(dirSize)/int(transferTime))
         results[directory]={'time': transferTime, 'throughput': throughput}
 
 createDirectories()
-createBucket()
 createTestFiles()
 #listObjects()
 uploadFiles()
 print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
-cleanup()
+#cleanup()
