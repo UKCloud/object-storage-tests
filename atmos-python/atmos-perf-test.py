@@ -11,7 +11,7 @@ import time
 import json
 from EsuRestApi import EsuRestApi
 
-numberOfIterations = 10
+numberOfIterations = 2
 api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
@@ -49,25 +49,24 @@ def get_size(start_path):
             total_size += os.path.getsize(fp)
     return total_size
 
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return num
-        num /= 1024.0
+def sizeof_fmt(num):
+    num /= 1024.0
     return num
 
 def uploadFiles():
     for directory, value in fileDetails.iteritems():
         transferTimeList = []
         throughputList = []
-        start_time = time.time()
         for num in range(numberOfIterations):
             dirSize = get_size(directory)
             filenames = os.listdir(directory)
             print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
             for fname in filenames:
+                start_time = time.time()
                 fileData = open(directory + '/' + fname, 'rb')
-                objectList.append(api.create_object(data = fileData.read()))
+                objectId = api.create_object(data = fileData.read())
+                print(objectId)
+                objectList.append(objectId)
                 fileData.close()
                 transferTime = ("%i" % (time.time() - start_time))
                 throughput = sizeof_fmt(int(dirSize)/int(transferTime))
