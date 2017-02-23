@@ -1,3 +1,4 @@
+from __future__ import division
 ATMOS_KEY = "194ed3dd98414dcebc780f030d36e616/131318694590302234@ecstestdrive.emc.com"
 ATMOS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
 HOST = 'atmos.ecstestdrive.com'
@@ -10,6 +11,7 @@ import subprocess
 import time
 import json
 from EsuRestApi import EsuRestApi
+import datetime
 
 numberOfIterations = 2
 api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
@@ -61,17 +63,19 @@ def uploadFiles():
             filenames = os.listdir(directory)
             print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
             for fname in filenames:
-                start_time = time.time()
+                start_time = datetime.datetime.now()
                 fileData = open(directory + '/' + fname, 'rb')
                 objectId = api.create_object(data = fileData.read())
                 objectList.append(objectId)
+                fileData = open(directory + '/' + fname, 'rb')
                 fileData.close()
-                transferTime = ("%i" % (time.time() - start_time))
+                end_time = datetime.datetime.now()
+                transferTime = (end_time.microsecond - start_time.microsecond)
                 transferTimeList.append(int(transferTime))
                 
         transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
-        print(transferTime)
-        throughput = (sizeof_fmt(dirSize)/int(transferTime1))
+        transferTime1 /= 1000
+        throughput = (sizeof_fmt(dirSize)/transferTime1)
         results[directory]={'time': transferTime1, 'throughput': throughput}
 
 createDirectories()
