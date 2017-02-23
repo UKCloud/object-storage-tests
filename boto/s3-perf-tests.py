@@ -76,11 +76,11 @@ def sizeof_fmt(num, suffix='B'):
     return num
 
 def uploadFiles():
-    throughputList = []
-    transferTimeList = []
-    for num in range(numberOfIterations):
+    for directory, value in fileDetails.iteritems():
+        throughputList = []
+        transferTimeList = []
         start_time = time.time()
-        for directory, value in fileDetails.iteritems():
+        for num in range(numberOfIterations):
             dirSize = get_size(directory)
             filenames = os.listdir(directory)
             print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
