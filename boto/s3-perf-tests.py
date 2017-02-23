@@ -7,14 +7,15 @@ import os
 import sys
 import subprocess
 import time
+import json
 from boto.s3.connection import S3Connection
 
 conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST)
 results = {}
 fileDetails = {}
-fileDetails['512k']={ "count": '100', "size": '512'}
+#fileDetails['512k']={ "count": '100', "size": '512'}
 fileDetails['1MB']={ "count": '50', "size": '1000'}
-fileDetails['10MB']={ "count": '25', "size": '10000'}
+#fileDetails['10MB']={ "count": '25', "size": '10000'}
 #fileDetails['100MB']={ "count": '10', "size": '100000'}
 #fileDetails['1000MB']={ "count": '5', "size": '1000000'}
 
@@ -91,5 +92,5 @@ createBucket()
 createTestFiles()
 #listObjects()
 uploadFiles()
-print(results)
+print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
 cleanup()
