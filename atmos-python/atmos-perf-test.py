@@ -11,7 +11,7 @@ import time
 import json
 from EsuRestApi import EsuRestApi
 
-iterations = 10
+numberOfIterations = 10
 api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
