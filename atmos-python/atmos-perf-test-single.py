@@ -17,14 +17,14 @@ api = EsuRestApi(HOST, PORT, ATMOS_KEY, ATMOS_SECRET)
 results = {}
 objectList = []
 fileDetails = {}
-#fileDetails['../512k']={ "count": '100', "size": '512'}
-#fileDetails['../1MB']={ "count": '50', "size": '1000'}
-#fileDetails['../10MB']={ "count": '25', "size": '10000'}
-#fileDetails['../100MB']={ "count": '10', "size": '100000'}
+fileDetails['../512k']={ "count": '100', "size": '512'}
+fileDetails['../1MB']={ "count": '50', "size": '1000'}
+fileDetails['../10MB']={ "count": '25', "size": '10000'}
+fileDetails['../100MB']={ "count": '10', "size": '100000'}
 fileDetails['../1000MB']={ "count": '5', "size": '1000000'}
 transferTimeList = []
 throughputList = []
-numberOfIterations = 10
+numberOfIterations = 2
 
 def createDirectories():
     for directory in fileDetails.keys():
@@ -64,15 +64,15 @@ def singleFileUpload(value, filePath):
     throughputList.append(throughput)
 
 def uploadFiles():
-    for num in range(numberOfIterations):
+    for directory, value in fileDetails.iteritems():
         my_queue = Queue(maxsize=0)
-        for directory, value in fileDetails.iteritems():
+        for num in range(numberOfIterations):
             filenames = os.listdir(directory)
             for fname in filenames:
                 singleFileUpload(value, directory + '/' + fname)
-    throughput = reduce(lambda x, y: x + y, throughputList) / len(throughputList)
-    transferTime = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
-    print(value['size'] + ',' + str(transferTime) + ',' + str(throughput))
+        throughput = reduce(lambda x, y: x + y, throughputList) / len(throughputList)
+        transferTime = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
+        print(value['size'] + ',' + str(transferTime) + ',' + str(throughput))
 
 createDirectories()
 createTestFiles()
