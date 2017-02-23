@@ -36,7 +36,7 @@ def createTestFiles():
 
 def createBucket():
     for bucket in fileDetails.keys():
-        bucket = bucket.lower() 
+        bucket = re.sub('\.\.\/', "", bucket.lower() )
         try:
             bucket = conn.get_bucket(bucket)
         except Exception as e:
@@ -54,7 +54,7 @@ def listObjects():
 
 def cleanup():
     for bucket in fileDetails.keys():
-        bucket = bucket.lower()
+        bucket = re.sub('\.\.\/', "", bucket.lower() )
         bucket = conn.get_bucket(bucket)
         bucket.delete_keys(bucket.list())
 
@@ -80,7 +80,8 @@ def uploadFiles():
         filenames = os.listdir(directory)
         print('Uploading ' + fileDetails[directory]['count'] + " " + directory + ' files')
         for fname in filenames:
-            bucket = conn.get_bucket(directory.lower())
+            bucket = re.sub('\.\.\/', "", directory.lower() )
+            bucket = conn.get_bucket(bucket)
             k = bucket.new_key(fname)
             k.set_contents_from_filename(directory + "/" + fname)
         transferTime = ("%i" % (time.time() - start_time))
