@@ -58,6 +58,7 @@ def sizeof_fmt(num):
 def uploadFiles():
     for directory, value in fileDetails.iteritems():
         transferTimeList = []
+        throughputTimeList = []
         for num in range(numberOfIterations):
             dirSize = get_size(directory)
             filenames = os.listdir(directory)
@@ -65,18 +66,20 @@ def uploadFiles():
             for fname in filenames:
                 start_time = datetime.datetime.now()
                 fileData = open(directory + '/' + fname, 'rb')
-                objectId = api.create_object(data = fileData.read())
-                objectList.append(objectId)
+                #objectId = api.create_object(data = fileData.read())
+                #objectList.append(objectId)
+                time.sleep(1)
                 fileData = open(directory + '/' + fname, 'rb')
                 fileData.close()
                 end_time = datetime.datetime.now()
-                transferTime = (end_time.microsecond - start_time.microsecond)
+                transferTime = (end_time.microsecond - start_time.microsecond) / 1000
+                throughput = (float(value['size']) / transferTime) / 1000
                 transferTimeList.append(int(transferTime))
+                throughputTimeList.append(float(throughput))
                 
         transferTime1 = reduce(lambda x, y: x + y, transferTimeList) / len(transferTimeList)
-        transferTime1 /= 1000
-        throughput = (sizeof_fmt(dirSize)/transferTime1)
-        results[directory]={'time': transferTime1, 'throughput': throughput}
+        throughput1 = reduce(lambda x, y: x + y, throughputTimeList) / len(throughputTimeList)
+        results[directory]={'time': transferTime1, 'throughput': throughput1}
 
 createDirectories()
 createTestFiles()
