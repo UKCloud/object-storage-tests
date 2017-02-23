@@ -1,7 +1,6 @@
-ATMOS_KEY = "194ed3dd98414dcebc780f030d36e616/131318694590302234@ecstestdrive.emc.com"
-ATMOS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
-HOST = 'atmos.ecstestdrive.com'
-PORT = 443
+AWS_KEY = "131318694590302234@ecstestdrive.emc.com"
+AWS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
+HOST = 'object.ecstestdrive.com'
  
 import re
 import os
@@ -26,7 +25,7 @@ transferTimeList = []
 throughputList = []
 numberOfIterations = 1
 threads = []
-maxthreads = 10
+maxthreads = 1
 sema = threading.Semaphore(value=maxthreads)
 threads = list()
 
@@ -59,13 +58,6 @@ def cleanup():
         bucket = conn.get_bucket(bucket)
         bucket.delete_keys(bucket.list())
 
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return num
-        num /= 1024.0
-    return num
-
 def get_size(start_path):
     p = subprocess.Popen(['du', '-ms', start_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
@@ -77,6 +69,7 @@ def singleFileUpload(directory, filename):
     bucket = conn.get_bucket(bucket)
     k = bucket.new_key(filename)
     k.set_contents_from_filename(directory + "/" + filename)
+    time.sleep(1)
     sema.release()
 
 def uploadFiles():
@@ -92,7 +85,7 @@ def uploadFiles():
             t.join()
         end_time = os.times()[4]
         transferTime = ( end_time - start_time )
-        throughput = sizeof_fmt((float(get_size(directory)))/float(transferTime))
+        throughput = (float(get_size(directory)))/float(transferTime)
         print(value['size'] + ',' + str(transferTime) + ',' + str(throughput))
 
 createDirectories()
