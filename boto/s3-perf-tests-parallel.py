@@ -1,7 +1,9 @@
 AWS_KEY = "131318694590302234@ecstestdrive.emc.com"
 AWS_SECRET = "/rDrx8U/Os8KJsbLClrLrDrDuyyV74YbBFrHfm0d"
 HOST = 'object.ecstestdrive.com'
- 
+PORT = 443
+DEBUG=0
+
 import re
 import os
 import sys
@@ -11,8 +13,9 @@ import json
 from datetime import datetime
 from boto.s3.connection import S3Connection
 import threading
+import socket
 
-conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST)  
+conn = S3Connection(aws_access_key_id=AWS_KEY, aws_secret_access_key=AWS_SECRET, host=HOST, port=PORT, debug=DEBUG)
 results = {}
 objectList = []
 fileDetails = {}
@@ -40,13 +43,26 @@ def createTestFiles():
         directory = key
         count = int(value['count'])
         size = str(value['size'])
-        if os.listdir(directory) == []: 
+        if os.listdir(directory) == []:
             print('Creating test files, this can take a while')
             for num in range(count):
                 subprocess.call(['dd', 'if=/dev/zero', "of=" + directory + "/file-" + str(num), "bs=1024", "count=" + size])
 
+def createBucket():
+    for bucket in fileDetails.keys():
+        bucket = re.sub('\.\.\/', "", bucket.lower() )
+        bucket = bucket.lower()
+        try:
+            bucket = conn.get_bucket(bucket)
+        except Exception as e:
+            if re.match(r".*404 Not Found.*", str(e)):
+                conn.create_bucket(bucket)
+            else:
+                print("couldn't create bucket")
+
 def listObjects():
     for bucket in fileDetails.keys():
+        bucket = re.sub('\.\.\/', "", bucket.lower() )
         bucket = bucket.lower()
         bucket = conn.get_bucket(bucket)
         for obj in bucket.list():
@@ -90,6 +106,7 @@ def uploadFiles():
 createDirectories()
 createTestFiles()
 #listObjects()
+createBucket()
 uploadFiles()
 #print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
 #cleanup()
