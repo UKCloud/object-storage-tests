@@ -103,10 +103,26 @@ def uploadFiles():
         throughput = (float(get_size(directory)))/float(transferTime)
         print(value['size'] + ',' + str(transferTime) + ',' + str(throughput))
 
+def downloadFiles():
+    for bucket, value in fileDetails.iteritems():
+        start_time = os.times()[4]
+        directory = bucket
+        bucket = re.sub('\.\.\/', "", bucket.lower() )
+        bucket = bucket.lower()
+        bucket = conn.get_bucket(bucket)
+        for obj in bucket.list():
+            keyString = str(obj.key)
+            obj.get_contents_to_filename(directory + '/' + obj.key)
+        end_time = os.times()[4]
+        transferTime = ( end_time - start_time )
+        throughput = (float(get_size(directory)))/float(transferTime)
+        print('download: ' + value['size'] + ',' + str(transferTime) + ',' + str(throughput))
+
 createDirectories()
 createTestFiles()
 #listObjects()
 createBucket()
 uploadFiles()
+downloadFiles()
 #print json.dumps(results, sort_keys=True,indent=4, separators=(',', ': '))
-#cleanup()
+cleanup()
